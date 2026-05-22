@@ -43,7 +43,6 @@ def print_table(rows: list[dict]) -> None:
     table.add_column("ID")
     table.add_column("Name")
     table.add_column("Date Created")
-    table.add_column("Date Imported")
     table.add_column("Status")
 
     for row in rows:

@@ -22,4 +22,3 @@ fix:
 .PHONY: test
 test:
 	uv run pytest --cov=cbio_ingest --cov-report=html --cov-report=term-missing
-
