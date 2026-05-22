@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cbio-ingest"
+version = "0.1.0"
+description = "CLI for the REST API of cbio-ingest"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.4.0",
+    "pyrefly>=1.0.0",
+    "requests>=2.34.2",
+    "rich>=13.0.0",
+    "ruff>=0.15.13",
+    "textual>=8.2.6",
+    "textual-dev>=1.8.0",
+]
+
+[project.scripts]
+cbio-ingest = "cbio_ingest.cli:cli"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=6.0",
+    "responses>=0.25",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle errors
+  "F",  # pyflakes
+  "I",  # isort
+]
+
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--cov=cbio_ingest --cov-report=term-missing --cov-report=html"
+
+[tool.coverage.run]
+source = ["cbio_ingest"]
+omit = ["cbio_ingest/__init__.py", "cbio_ingest/commands/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false

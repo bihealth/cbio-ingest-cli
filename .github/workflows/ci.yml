@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Lint
+        run: uv run ruff check
+
+      - name: Format check
+        run: uv run ruff format --check
+
+      - name: Type check
+        run: uv run pyrefly check
+
+  test:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      - name: Test
+        run: uv run pytest -v --cov=cbio_ingest --cov-report=xml --cov-report=term-missing --cov-fail-under=95
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build package
+        run: uv build
