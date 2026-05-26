@@ -48,10 +48,21 @@ def study_get(ctx: click.Context, study_id: int, follow: bool):
 
 @study.command("ingest")
 @click.argument("name", type=str)
+@click.option("--force", is_flag=True, default=False, help="Force re-ingestion if already exists.")
+@click.option(
+    "--keep-logs", is_flag=True, default=False, help="Retain logs after ingestion completes."
+)
 @click.pass_context
-def study_ingest(ctx: click.Context, name: str):
+def study_ingest(ctx: click.Context, name: str, force: bool, keep_logs: bool):
     """Ingest a study into cBioPortal."""
-    response = make_session(ctx).post(api_url(ctx, "/studies/"), json={"name": name})
+    response = make_session(ctx).post(
+        api_url(ctx, "/studies/"),
+        json={"name": name},
+        params={
+            "force": str(force).lower(),
+            "keep_logs": str(keep_logs).lower(),
+        },
+    )
     data = response.json()
     click.echo(
         f"Ingestion job submitted for study '{data.get('name', name)}' (id: {data.get('id', '?')})."

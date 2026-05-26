@@ -50,6 +50,23 @@ def test_studies_ingest(runner: CliRunner, cli_args: list[str]) -> None:
 
 
 @rsps.activate
+def test_studies_ingest_force_and_keep_logs(runner: CliRunner, cli_args: list[str]) -> None:
+    rsps.add(
+        rsps.POST,
+        f"{BASE}/studies/",
+        json=STUDY,
+        status=201,
+        match=[rsps.matchers.query_param_matcher({"force": "true", "keep_logs": "true"})],
+    )
+    result = runner.invoke(
+        cli, cli_args + ["study", "ingest", "test_study", "--force", "--keep-logs"]
+    )
+    assert result.exit_code == 0
+    assert "Ingestion job submitted" in result.output
+    assert "test_study" in result.output
+
+
+@rsps.activate
 def test_studies_delete(runner: CliRunner, cli_args: list[str]) -> None:
     rsps.add(rsps.DELETE, f"{BASE}/studies/1", json={})
     result = runner.invoke(cli, cli_args + ["study", "delete", "1"])

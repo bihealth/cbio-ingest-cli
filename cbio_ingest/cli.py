@@ -2,7 +2,6 @@ from pathlib import Path
 
 import click
 
-from cbio_ingest.api import sanity_check_server
 from cbio_ingest.commands.panel import panel
 from cbio_ingest.commands.study import study
 from cbio_ingest.config import DEFAULT_CONFIG_PATH, load_config
@@ -49,8 +48,6 @@ def cli(ctx: click.Context, config: Path, url: str | None, token: str | None, se
         )
 
     ctx.obj = {"url": url, "token": token}
-
-    sanity_check_server(ctx)
 
 
 cli.add_command(study)

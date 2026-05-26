@@ -66,6 +66,14 @@ class ApiSession(requests.Session):
         except requests.Timeout:
             raise click.ClickException("Request timed out.") from None
         if not response.ok:
+            # Only check root if 404, to verify if this is the cbio-ingest API
+            if response.status_code == 404 and hasattr(self, "_ctx"):
+                from cbio_ingest.api import sanity_check_server
+
+                try:
+                    sanity_check_server(self._ctx)
+                except click.ClickException as e:
+                    raise click.ClickException(f"HTTP 404: {e}")
             try:
                 detail = response.json().get("detail", response.text)
             except Exception:
@@ -77,6 +85,7 @@ class ApiSession(requests.Session):
 def make_session(ctx: click.Context) -> ApiSession:
     cfg = ctx.obj
     session = ApiSession()
+    session._ctx = ctx  # Attach context for error handling
     session.headers["Authorization"] = f"Bearer {cfg['token']}"
     session.headers["Accept"] = "application/json"
     return session
