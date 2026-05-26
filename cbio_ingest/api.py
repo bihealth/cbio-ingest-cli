@@ -84,3 +84,14 @@ def make_session(ctx: click.Context) -> ApiSession:
 
 def api_url(ctx: click.Context, path: str) -> str:
     return ctx.obj["url"].rstrip("/") + path
+
+
+def sanity_check_server(ctx: click.Context) -> None:
+    response = make_session(ctx).get(api_url(ctx, "/"), params={"all": ""})
+    fail_msg = "Connected to a server but it does not seem to be the cbio-ingest API."
+    try:
+        data = response.json()
+    except requests.exceptions.JSONDecodeError:
+        raise click.ClickException(fail_msg)
+    if data.get("title") != "cBioPortal Ingest API":
+        raise click.ClickException(fail_msg)

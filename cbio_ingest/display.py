@@ -12,11 +12,9 @@ _STATUS_STYLE: dict[str, str] = {
 }
 
 _LEVEL_STYLE: dict[str, str] = {
-    "DEBUG": "dim",
     "INFO": "cyan",
     "WARNING": "yellow",
     "ERROR": "bold red",
-    "CRITICAL": "bold red reverse",
 }
 
 
