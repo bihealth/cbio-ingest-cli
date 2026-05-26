@@ -22,7 +22,7 @@ source .venv/bin/activate
 Create a configuration:
 
 ```bash
-mkdir ~/.config/cbio-ingest
+mkdir -p ~/.config/cbio-ingest
 cat <<EOF > ~/.config/cbio-ingest/config.toml
 [default]
 url = "http://localhost:8000"
@@ -56,15 +56,15 @@ The `list` command will list all panels that have been placed in the `panel/` fo
 
 ```bash
 cbio-ingest panel list
-                                                                        
-  ID   Name                            Date Created          Status    
+
+  ID   Name                            Date Created          Status
  ──────────────────────────────────────────────────────────────────────
-  1    data_gene_panel_impact300.txt   2026-05-22 10:29:57   completed 
-  -    data_gene_panel_impact341.txt   -                     initial   
-  -    data_gene_panel_impact410.txt   -                     initial   
-  -    data_gene_panel_impact230.txt   -                     initial   
-  -    data_gene_panel_impact505.txt   -                     initial   
-  -    data_gene_panel_impact468.txt   -                     initial   
+  1    data_gene_panel_impact300.txt   2026-05-22 10:29:57   completed
+  -    data_gene_panel_impact341.txt   -                     initial
+  -    data_gene_panel_impact410.txt   -                     initial
+  -    data_gene_panel_impact230.txt   -                     initial
+  -    data_gene_panel_impact505.txt   -                     initial
+  -    data_gene_panel_impact468.txt   -                     initial
 ```
 
 ### ingest
@@ -85,19 +85,18 @@ To follow the logs, use `--follow`.
 
 ```bash
 cbio-ingest panel get 2
-                                                                        
-  ID   Name                            Date Created          Status     
- ────────────────────────────────────────────────────────────────────── 
-  2    data_gene_panel_impact341.txt   2026-05-22 15:26:30   completed  
-                                                                        
- Timestamp            Level  Reporter  Message                                                                        
- 2026-05-22 15:26:12  INFO   worker    Ingestion started.                                                             
- 2026-05-22 15:26:12  INFO   worker    Running command: ./importGenePanel.pl --data                                   
-                                       /panel/data_gene_panel_impact341.txt                                           
- 2026-05-22 15:26:19  INFO   docker    Done.                                                                          
- 2026-05-22 15:26:19  INFO   docker    Total time:  7169 ms                                                           
- 2026-05-22 15:26:30  INFO   worker    Container restarted to apply changes.                                          
- 2026-05-22 15:26:30  INFO   worker    Ingestion completed.                                
+
+  ID   Name                            Date Created          Status
+ ──────────────────────────────────────────────────────────────────────
+  2    data_gene_panel_impact341.txt   2026-05-22 15:26:30   completed
+
+ Timestamp            Level  Reporter  Message
+ 2026-05-22 15:26:12  INFO   worker    Ingestion started.
+ 2026-05-22 15:26:12  INFO   worker    Running command: ./importGenePanel.pl --data /panel/data_gene_panel_impact341.txt
+ 2026-05-22 15:26:19  INFO   docker    Done.
+ 2026-05-22 15:26:19  INFO   docker    Total time:  7169 ms
+ 2026-05-22 15:26:30  INFO   worker    Container restarted to apply changes.
+ 2026-05-22 15:26:30  INFO   worker    Ingestion completed.
 ```
 
 ### delete
