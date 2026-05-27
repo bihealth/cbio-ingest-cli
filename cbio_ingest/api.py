@@ -1,45 +1,31 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, MutableMapping
+from typing import Any
 
 import click
 import requests
 
-if TYPE_CHECKING:
-    from requests import Response
-    from requests.sessions import (
-        _Auth,
-        _Cert,
-        _Data,
-        _Files,
-        _HeadersUpdateMapping,
-        _HooksInput,
-        _Params,
-        _Timeout,
-        _Verify,
-    )
-
 
 class ApiSession(requests.Session):
-    def request(  # type: ignore[override]
+    _ctx: Any
+
+    def request(
         self,
-        method: bytes | str,
-        url: bytes | str,
-        params: _Params | None = None,
-        data: _Data | None = None,
-        headers: _HeadersUpdateMapping | None = None,
-        cookies: requests.cookies.RequestsCookieJar | None = None,
-        files: _Files | None = None,
-        auth: _Auth | None = None,
-        timeout: _Timeout | None = None,
+        method: str,
+        url: str,
+        params: dict[str, Any] | None = None,
+        data: Any = None,
+        headers: dict[str, str] | None = None,
+        cookies: Any = None,
+        files: Any = None,
+        auth: Any = None,
+        timeout: float | tuple[float, float] | None = None,
         allow_redirects: bool = True,
-        proxies: MutableMapping[str, str] | None = None,
-        hooks: _HooksInput | None = None,
+        proxies: dict[str, str] | None = None,
+        hooks: Any = None,
         stream: bool | None = None,
-        verify: _Verify | None = None,
-        cert: _Cert | None = None,
-        json: object | None = None,
-    ) -> Response:
+        verify: bool | str | None = None,
+        cert: Any = None,
+        json: Any = None,
+    ) -> requests.Response:
         try:
             response = super().request(
                 method,
