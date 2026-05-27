@@ -7,44 +7,9 @@ import requests
 class ApiSession(requests.Session):
     _ctx: Any
 
-    def request(
-        self,
-        method: str,
-        url: str,
-        params: dict[str, Any] | None = None,
-        data: Any = None,
-        headers: dict[str, str] | None = None,
-        cookies: Any = None,
-        files: Any = None,
-        auth: Any = None,
-        timeout: float | tuple[float, float] | None = None,
-        allow_redirects: bool = True,
-        proxies: dict[str, str] | None = None,
-        hooks: Any = None,
-        stream: bool | None = None,
-        verify: bool | str | None = None,
-        cert: Any = None,
-        json: Any = None,
-    ) -> requests.Response:
+    def request(self, *args, **kwargs) -> requests.Response:
         try:
-            response = super().request(
-                method,
-                url,
-                params=params,
-                data=data,
-                headers=headers,
-                cookies=cookies,
-                files=files,
-                auth=auth,
-                timeout=timeout,
-                allow_redirects=allow_redirects,
-                proxies=proxies,
-                hooks=hooks,
-                stream=stream,
-                verify=verify,
-                cert=cert,
-                json=json,
-            )
+            response = super().request(*args, **kwargs)
         except requests.ConnectionError:
             raise click.ClickException(
                 "Could not connect to the API. Is the server running?"
@@ -54,8 +19,6 @@ class ApiSession(requests.Session):
         if not response.ok:
             # Only check root if 404, to verify if this is the cbio-ingest API
             if response.status_code == 404 and hasattr(self, "_ctx"):
-                from cbio_ingest.api import sanity_check_server
-
                 try:
                     sanity_check_server(self._ctx)
                 except click.ClickException as e:
