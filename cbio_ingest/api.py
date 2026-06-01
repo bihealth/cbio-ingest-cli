@@ -45,7 +45,7 @@ def api_url(ctx: click.Context, path: str) -> str:
 
 
 def sanity_check_server(ctx: click.Context) -> None:
-    response = make_session(ctx).get(api_url(ctx, "/"), params={"all": ""})
+    response = make_session(ctx).get(api_url(ctx, "/"))
     fail_msg = "Connected to a server but it does not seem to be the cbio-ingest API."
     try:
         data = response.json()

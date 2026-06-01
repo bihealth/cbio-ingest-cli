@@ -18,7 +18,7 @@ def panel():
 @click.pass_context
 def panel_list(ctx: click.Context):
     """List all available and imported panels."""
-    response = make_session(ctx).get(api_url(ctx, "/panels/"), params={"all": ""})
+    response = make_session(ctx).get(api_url(ctx, "/panels/"))
     print_table(response.json())
 
 

@@ -42,6 +42,7 @@ def print_table(rows: list[dict]) -> None:
     table.add_column("Name")
     table.add_column("Date Created")
     table.add_column("Status")
+    table.add_column("In Source Folder")
 
     for row in rows:
         table.add_row(
@@ -49,6 +50,7 @@ def print_table(rows: list[dict]) -> None:
             row.get("name", "-"),
             _fmt_dt(row.get("date_ingested")),
             color_status(row.get("status", "-")),
+            str(row.get("in_source_folder", "?")).lower(),
         )
 
     Console().print(table)

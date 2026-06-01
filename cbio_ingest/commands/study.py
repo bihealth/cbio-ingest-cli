@@ -18,7 +18,7 @@ def study():
 @click.pass_context
 def study_list(ctx: click.Context):
     """List all available and imported studies."""
-    response = make_session(ctx).get(api_url(ctx, "/studies/"), params={"all": ""})
+    response = make_session(ctx).get(api_url(ctx, "/studies/"))
     print_table(response.json())
 
 
