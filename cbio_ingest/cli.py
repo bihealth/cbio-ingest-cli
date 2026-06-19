@@ -4,6 +4,7 @@ import click
 
 from cbio_ingest.commands.panel import panel
 from cbio_ingest.commands.study import study
+from cbio_ingest.commands.validation import validation
 from cbio_ingest.config import DEFAULT_CONFIG_PATH, load_config
 
 
@@ -52,3 +53,4 @@ def cli(ctx: click.Context, config: Path, url: str | None, token: str | None, se
 
 cli.add_command(study)
 cli.add_command(panel)
+cli.add_command(validation)

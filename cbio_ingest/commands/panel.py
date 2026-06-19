@@ -3,7 +3,7 @@ import time
 import click
 
 from cbio_ingest.api import api_url, make_session
-from cbio_ingest.display import print_logs, print_table
+from cbio_ingest.display import print_logs, print_table_panel
 
 _TERMINAL_STATUSES = {"completed", "failed"}
 
@@ -19,7 +19,7 @@ def panel():
 def panel_list(ctx: click.Context):
     """List all available and imported panels."""
     response = make_session(ctx).get(api_url(ctx, "/panels/"))
-    print_table(response.json())
+    print_table_panel(response.json())
 
 
 @panel.command("get")
@@ -31,7 +31,7 @@ def panel_get(ctx: click.Context, panel_id: int, follow: bool):
     session = make_session(ctx)
     url = api_url(ctx, f"/panels/{panel_id}")
     data = session.get(url).json()
-    print_table([data])
+    print_table_panel([data])
     print_logs(data.get("logs", []))
 
     if follow and data.get("status") not in _TERMINAL_STATUSES:
@@ -43,24 +43,20 @@ def panel_get(ctx: click.Context, panel_id: int, follow: bool):
             if new_logs:
                 print_logs(new_logs, show_header=False)
             seen = len(data.get("logs", []))
-        print_table([data])
+        print_table_panel([data])
 
 
 @panel.command("ingest")
 @click.argument("name", type=str)
 @click.option("--force", is_flag=True, default=False, help="Force re-ingestion if already exists.")
-@click.option(
-    "--keep-logs", is_flag=True, default=False, help="Retain logs after ingestion completes."
-)
 @click.pass_context
-def panel_ingest(ctx: click.Context, name: str, force: bool, keep_logs: bool):
+def panel_ingest(ctx: click.Context, name: str, force: bool):
     """Ingest a panel into cBioPortal."""
     response = make_session(ctx).post(
         api_url(ctx, "/panels/"),
         json={"name": name},
         params={
             "force": str(force).lower(),
-            "keep_logs": str(keep_logs).lower(),
         },
     )
     data = response.json()
