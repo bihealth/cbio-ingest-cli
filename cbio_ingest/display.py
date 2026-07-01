@@ -1,4 +1,6 @@
+from collections.abc import Callable
 from datetime import datetime
+from typing import Any
 
 from rich import box
 from rich.console import Console
@@ -32,37 +34,69 @@ def _fmt_dt(value: str | None) -> str:
         return value
 
 
-def print_table(rows: list[dict]) -> None:
+Column = tuple[str, Callable[[dict[str, Any]], str]]
+
+
+def _print_table(rows: list[dict], optional_cols: list[Column]) -> None:
     if not rows:
         Console().print("[dim]No entries found.[/]")
         return
 
-    table = Table(show_header=True, box=box.SIMPLE)
+    table: Table = Table(show_header=True, box=box.SIMPLE)
     table.add_column("ID")
     table.add_column("Name")
-    table.add_column("Date Created")
+    table.add_column("Date")
     table.add_column("Status")
-    table.add_column("In Source Folder")
+
+    for header in optional_cols:
+        table.add_column(header[0])
 
     for row in rows:
-        table.add_row(
+        cols: list[str] = [
             str(row.get("id") or "-"),
             row.get("name", "-"),
-            _fmt_dt(row.get("date_ingested")),
+            _fmt_dt(row.get("date")),
             color_status(row.get("status", "-")),
-            str(row.get("in_source_folder", "?")).lower(),
-        )
+        ]
+
+        for col in optional_cols:
+            cols.append(col[1](row))
+
+        table.add_row(*cols)
 
     Console().print(table)
 
 
+def print_table_study(rows: list[dict]) -> None:
+    cols: list[Column] = [
+        ("In Source Folder", lambda row: str(row.get("in_source_folder", "?")).lower()),
+        ("Validation ID", lambda row: str(row.get("validation_id", "-"))),
+    ]
+    _print_table(rows, optional_cols=cols)
+
+
+def print_table_panel(rows: list[dict]) -> None:
+    cols: list[Column] = [
+        ("In Source Folder", lambda row: str(row.get("in_source_folder", "?")).lower()),
+    ]
+    _print_table(rows, optional_cols=cols)
+
+
+def print_table_validation(rows: list[dict]) -> None:
+    cols: list[Column] = [
+        ("Report", lambda row: f"{row.get('name')}.html" if row.get("name") else "-"),
+        ("Study ID", lambda row: str(row.get("study_id", "-"))),
+    ]
+    _print_table(rows, optional_cols=cols)
+
+
 def print_logs(logs: list[dict], show_header: bool = True) -> None:
-    console = Console()
+    console: Console = Console()
     if not logs:
         console.print("[dim]No logs.[/]")
         return
 
-    table = Table(show_header=show_header, box=None, padding=(0, 1))
+    table: Table = Table(show_header=show_header, box=None, padding=(0, 1))
     table.add_column("Timestamp", style="dim")
     table.add_column("Level", no_wrap=True)
     table.add_column("Reporter", style="dim")

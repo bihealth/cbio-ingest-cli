@@ -3,7 +3,7 @@ import time
 import click
 
 from cbio_ingest.api import api_url, make_session
-from cbio_ingest.display import print_logs, print_table
+from cbio_ingest.display import print_logs, print_table_study
 
 _TERMINAL_STATUSES = {"completed", "failed"}
 
@@ -19,7 +19,7 @@ def study():
 def study_list(ctx: click.Context):
     """List all available and imported studies."""
     response = make_session(ctx).get(api_url(ctx, "/studies/"))
-    print_table(response.json())
+    print_table_study(response.json())
 
 
 @study.command("get")
@@ -31,7 +31,7 @@ def study_get(ctx: click.Context, study_id: int, follow: bool):
     session = make_session(ctx)
     url = api_url(ctx, f"/studies/{study_id}")
     data = session.get(url).json()
-    print_table([data])
+    print_table_study([data])
     print_logs(data.get("logs", []))
 
     if follow and data.get("status") not in _TERMINAL_STATUSES:
@@ -43,29 +43,45 @@ def study_get(ctx: click.Context, study_id: int, follow: bool):
             if new_logs:
                 print_logs(new_logs, show_header=False)
             seen = len(data.get("logs", []))
-        print_table([data])
+        print_table_study([data])
 
 
 @study.command("ingest")
 @click.argument("name", type=str)
 @click.option("--force", is_flag=True, default=False, help="Force re-ingestion if already exists.")
-@click.option(
-    "--keep-logs", is_flag=True, default=False, help="Retain logs after ingestion completes."
-)
 @click.pass_context
-def study_ingest(ctx: click.Context, name: str, force: bool, keep_logs: bool):
+def study_ingest(ctx: click.Context, name: str, force: bool):
     """Ingest a study into cBioPortal."""
     response = make_session(ctx).post(
         api_url(ctx, "/studies/"),
         json={"name": name},
         params={
             "force": str(force).lower(),
-            "keep_logs": str(keep_logs).lower(),
         },
     )
     data = response.json()
     click.echo(
         f"Ingestion job submitted for study '{data.get('name', name)}' (id: {data.get('id', '?')})."
+    )
+
+
+@study.command("validate")
+@click.argument("name", type=str)
+@click.option("--force", is_flag=True, default=False, help="Force re-validation if already exists.")
+@click.pass_context
+def validate_study(ctx: click.Context, name: str, force: bool):
+    """Ingest a validation into cBioPortal."""
+    response = make_session(ctx).post(
+        api_url(ctx, "/validations/"),
+        json={"name": name},
+        params={
+            "force": str(force).lower(),
+        },
+    )
+    data = response.json()
+    click.echo(
+        f"Validation job submitted for study '{data.get('name', name)}' "
+        f"(id: {data.get('id', '?')})."
     )
 
 
