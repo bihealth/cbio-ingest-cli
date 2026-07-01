@@ -106,3 +106,29 @@ def test_studies_get_follow_polls_until_complete(runner: CliRunner, cli_args: li
     assert result.exit_code == 0
     assert "Ingestion completed." in result.output
     assert len(rsps.calls) == 2
+
+
+@rsps.activate
+def test_studies_validate(runner: CliRunner, cli_args: list[str]) -> None:
+    validation_response = {**STUDY, "name": "test_study"}
+    rsps.add(rsps.POST, f"{BASE}/validations/", json=validation_response, status=201)
+    result = runner.invoke(cli, cli_args + ["study", "validate", "test_study"])
+    assert result.exit_code == 0
+    assert "Validation job submitted" in result.output
+    assert "test_study" in result.output
+
+
+@rsps.activate
+def test_studies_validate_force(runner: CliRunner, cli_args: list[str]) -> None:
+    validation_response = {**STUDY, "name": "test_study"}
+    rsps.add(
+        rsps.POST,
+        f"{BASE}/validations/",
+        json=validation_response,
+        status=201,
+        match=[rsps.matchers.query_param_matcher({"force": "true"})],
+    )
+    result = runner.invoke(cli, cli_args + ["study", "validate", "test_study", "--force"])
+    assert result.exit_code == 0
+    assert "Validation job submitted" in result.output
+    assert "test_study" in result.output
