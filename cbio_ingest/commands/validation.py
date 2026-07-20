@@ -1,11 +1,8 @@
-import time
-
 import click
 
-from cbio_ingest.api import api_url, make_session
+from cbio_ingest.client import TERMINAL_STATUSES, poll_job
+from cbio_ingest.commands._shared import get_client, translate_errors
 from cbio_ingest.display import print_logs, print_table_validation
-
-_TERMINAL_STATUSES = {"completed", "failed"}
 
 
 @click.group()
@@ -18,8 +15,10 @@ def validation():
 @click.pass_context
 def validation_list(ctx: click.Context):
     """List all validations."""
-    response = make_session(ctx).get(api_url(ctx, "/validations/"))
-    print_table_validation(response.json())
+    client = get_client(ctx)
+    with translate_errors():
+        validations = client.list_validations()
+    print_table_validation(validations)
 
 
 @validation.command("get")
@@ -28,22 +27,20 @@ def validation_list(ctx: click.Context):
 @click.pass_context
 def validation_get(ctx: click.Context, validation_id: int, follow: bool):
     """Fetch a single validation by ID."""
-    session = make_session(ctx)
-    url = api_url(ctx, f"/validations/{validation_id}")
-    data = session.get(url).json()
-    print_table_validation([data])
-    print_logs(data.get("logs", []))
-
-    if follow and data.get("status") not in _TERMINAL_STATUSES:
-        seen = len(data.get("logs", []))
-        while data.get("status") not in _TERMINAL_STATUSES:
-            time.sleep(2)
-            data = session.get(url).json()
-            new_logs = data.get("logs", [])[seen:]
-            if new_logs:
-                print_logs(new_logs, show_header=False)
-            seen = len(data.get("logs", []))
+    client = get_client(ctx)
+    with translate_errors():
+        data = client.get_validation(validation_id)
         print_table_validation([data])
+        print_logs(data.get("logs", []))
+
+        if follow and data.get("status") not in TERMINAL_STATUSES:
+            seen = len(data.get("logs", []))
+            for data in poll_job(data, lambda: client.get_validation(validation_id)):
+                new_logs = data.get("logs", [])[seen:]
+                if new_logs:
+                    print_logs(new_logs, show_header=False)
+                seen = len(data.get("logs", []))
+            print_table_validation([data])
 
 
 @validation.command("delete")
@@ -51,5 +48,7 @@ def validation_get(ctx: click.Context, validation_id: int, follow: bool):
 @click.pass_context
 def validation_delete(ctx: click.Context, validation_id: int):
     """Delete a validation."""
-    make_session(ctx).delete(api_url(ctx, f"/validations/{validation_id}"))
+    client = get_client(ctx)
+    with translate_errors():
+        client.delete_validation(validation_id)
     click.echo(f"Validation {validation_id} deleted.")

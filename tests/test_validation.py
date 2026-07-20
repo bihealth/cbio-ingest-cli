@@ -92,7 +92,7 @@ def test_validations_get_rejects_non_integer_id(runner: CliRunner, cli_args: lis
 def test_validations_get_follow_already_completed(runner: CliRunner, cli_args: list[str]) -> None:
     rsps.add(rsps.GET, f"{BASE}/validations/1", json=VALIDATION)
 
-    with patch("cbio_ingest.commands.validation.time.sleep") as sleep:
+    with patch("cbio_ingest.client.time.sleep") as sleep:
         result = runner.invoke(cli, cli_args + ["validation", "get", "1", "--follow"])
 
     assert result.exit_code == 0
@@ -106,7 +106,7 @@ def test_validations_get_follow_already_failed(runner: CliRunner, cli_args: list
     failed = {**VALIDATION, "status": "failed"}
     rsps.add(rsps.GET, f"{BASE}/validations/1", json=failed)
 
-    with patch("cbio_ingest.commands.validation.time.sleep") as sleep:
+    with patch("cbio_ingest.client.time.sleep") as sleep:
         result = runner.invoke(cli, cli_args + ["validation", "get", "1", "--follow"])
 
     assert result.exit_code == 0
@@ -146,7 +146,7 @@ def test_validations_get_follow_polls_until_complete_and_streams_new_logs(
     rsps.add(rsps.GET, f"{BASE}/validations/1", json=still_running)
     rsps.add(rsps.GET, f"{BASE}/validations/1", json=completed)
 
-    with patch("cbio_ingest.commands.validation.time.sleep") as sleep:
+    with patch("cbio_ingest.client.time.sleep") as sleep:
         result = runner.invoke(cli, cli_args + ["validation", "get", "1", "--follow"])
 
     assert result.exit_code == 0
@@ -174,7 +174,7 @@ def test_validations_get_follow_stops_on_failure(runner: CliRunner, cli_args: li
     rsps.add(rsps.GET, f"{BASE}/validations/1", json=in_progress)
     rsps.add(rsps.GET, f"{BASE}/validations/1", json=failed)
 
-    with patch("cbio_ingest.commands.validation.time.sleep") as sleep:
+    with patch("cbio_ingest.client.time.sleep") as sleep:
         result = runner.invoke(cli, cli_args + ["validation", "get", "1", "--follow"])
 
     assert result.exit_code == 0

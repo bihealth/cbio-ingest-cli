@@ -1,11 +1,8 @@
-import time
-
 import click
 
-from cbio_ingest.api import api_url, make_session
+from cbio_ingest.client import TERMINAL_STATUSES, poll_job
+from cbio_ingest.commands._shared import get_client, translate_errors
 from cbio_ingest.display import print_logs, print_table_panel
-
-_TERMINAL_STATUSES = {"completed", "failed"}
 
 
 @click.group()
@@ -18,8 +15,10 @@ def panel():
 @click.pass_context
 def panel_list(ctx: click.Context):
     """List all available and imported panels."""
-    response = make_session(ctx).get(api_url(ctx, "/panels/"))
-    print_table_panel(response.json())
+    client = get_client(ctx)
+    with translate_errors():
+        panels = client.list_panels()
+    print_table_panel(panels)
 
 
 @panel.command("get")
@@ -28,22 +27,20 @@ def panel_list(ctx: click.Context):
 @click.pass_context
 def panel_get(ctx: click.Context, panel_id: int, follow: bool):
     """Fetch a single panel by ID."""
-    session = make_session(ctx)
-    url = api_url(ctx, f"/panels/{panel_id}")
-    data = session.get(url).json()
-    print_table_panel([data])
-    print_logs(data.get("logs", []))
-
-    if follow and data.get("status") not in _TERMINAL_STATUSES:
-        seen = len(data.get("logs", []))
-        while data.get("status") not in _TERMINAL_STATUSES:
-            time.sleep(2)
-            data = session.get(url).json()
-            new_logs = data.get("logs", [])[seen:]
-            if new_logs:
-                print_logs(new_logs, show_header=False)
-            seen = len(data.get("logs", []))
+    client = get_client(ctx)
+    with translate_errors():
+        data = client.get_panel(panel_id)
         print_table_panel([data])
+        print_logs(data.get("logs", []))
+
+        if follow and data.get("status") not in TERMINAL_STATUSES:
+            seen = len(data.get("logs", []))
+            for data in poll_job(data, lambda: client.get_panel(panel_id)):
+                new_logs = data.get("logs", [])[seen:]
+                if new_logs:
+                    print_logs(new_logs, show_header=False)
+                seen = len(data.get("logs", []))
+            print_table_panel([data])
 
 
 @panel.command("ingest")
@@ -52,14 +49,9 @@ def panel_get(ctx: click.Context, panel_id: int, follow: bool):
 @click.pass_context
 def panel_ingest(ctx: click.Context, name: str, force: bool):
     """Ingest a panel into cBioPortal."""
-    response = make_session(ctx).post(
-        api_url(ctx, "/panels/"),
-        json={"name": name},
-        params={
-            "force": str(force).lower(),
-        },
-    )
-    data = response.json()
+    client = get_client(ctx)
+    with translate_errors():
+        data = client.ingest_panel(name, force=force)
     click.echo(
         f"Ingestion job submitted for panel '{data.get('name', name)}' (id: {data.get('id', '?')})."
     )
@@ -70,5 +62,7 @@ def panel_ingest(ctx: click.Context, name: str, force: bool):
 @click.pass_context
 def panel_delete(ctx: click.Context, panel_id: int):
     """Delete a panel from cBioPortal."""
-    make_session(ctx).delete(api_url(ctx, f"/panels/{panel_id}"))
+    client = get_client(ctx)
+    with translate_errors():
+        client.delete_panel(panel_id)
     click.echo(f"Panel {panel_id} deleted.")

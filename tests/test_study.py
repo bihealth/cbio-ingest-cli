@@ -101,7 +101,7 @@ def test_studies_get_follow_polls_until_complete(runner: CliRunner, cli_args: li
     in_progress = {**STUDY, "status": "in_progress", "logs": []}
     rsps.add(rsps.GET, f"{BASE}/studies/1", json=in_progress)
     rsps.add(rsps.GET, f"{BASE}/studies/1", json=STUDY)
-    with patch("cbio_ingest.commands.study.time.sleep"):
+    with patch("cbio_ingest.client.time.sleep"):
         result = runner.invoke(cli, cli_args + ["study", "get", "1", "--follow"])
     assert result.exit_code == 0
     assert "Ingestion completed." in result.output

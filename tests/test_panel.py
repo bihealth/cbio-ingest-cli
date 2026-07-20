@@ -101,7 +101,7 @@ def test_panels_get_follow_polls_until_complete(runner: CliRunner, cli_args: lis
     in_progress = {**PANEL, "status": "in_progress", "logs": []}
     rsps.add(rsps.GET, f"{BASE}/panels/1", json=in_progress)
     rsps.add(rsps.GET, f"{BASE}/panels/1", json=PANEL)
-    with patch("cbio_ingest.commands.panel.time.sleep"):
+    with patch("cbio_ingest.client.time.sleep"):
         result = runner.invoke(cli, cli_args + ["panel", "get", "1", "--follow"])
     assert result.exit_code == 0
     assert "Panel ingestion completed." in result.output
